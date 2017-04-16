@@ -217,14 +217,6 @@ export default {
       type: Boolean,
       default: false
     },
-    selectableHoverClass: {
-      type: String,
-      default: 'pointer'
-    },
-    selectedRowClass: {
-      type: String,
-      default: 'action'
-    },
     css: {
       type: Object,
       default () {
@@ -235,6 +227,8 @@ export default {
           descendingIcon: 'blue chevron down icon',
           detailRowClass: 'vuetable-detail-row',
           handleIcon: 'grey sidebar icon',
+          selectableHoverClass: 'pointer',
+          selectedRowClass: 'active'
         }
       }
     },
@@ -871,10 +865,10 @@ export default {
       let classes = []
 
       if (this.selectable) {
-        classes.push(this.selectableHoverClass)
+        classes.push(this.css.selectableHoverClass)
 
         if (this.checkEqual(this.selectData.selectedItem, dataItem)) {
-          classes.push(this.selectedRowClass);
+          classes.push(this.css.selectedRowClass);
         }
       }
 
