@@ -215,7 +215,7 @@ export default {
     },
     selectable: {
       type: Boolean,
-      default: 'id'
+      default: false
     },
     selectableHoverClass: {
       type: String,
