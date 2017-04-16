@@ -233,6 +233,10 @@ export default {
     silent: {
       type: Boolean,
       default: false
+    },
+    sortable: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
@@ -260,6 +264,20 @@ export default {
     }
   },
   computed: {
+    Fields () {
+      if(! this.sortable) return this.fields
+
+      let newFields = this.fields.map(function(field) {
+        if(field.sortField === undefined) {
+          field.sortField = field.name;
+        } else if(!field.sortField) {
+          delete field.sortField
+        }
+        return field;
+      })
+
+      return newFields
+    },
     useDetailRow () {
       if (this.tableData && this.tableData[0] && this.detailRowComponent !== '' && typeof this.tableData[0][this.trackBy] === 'undefined') {
         this.warn('You need to define unique row identifier in order for detail-row feature to work. Use `track-by` prop to define one!')
