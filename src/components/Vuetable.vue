@@ -210,8 +210,20 @@ export default {
       default: ''
     },
     trackBy: {
-      type: String,
+      type: [String, Array],
       default: 'id'
+    },
+    selectable: {
+      type: Boolean,
+      default: 'id'
+    },
+    selectableHoverClass: {
+      type: String,
+      default: 'pointer'
+    },
+    selectedRowClass: {
+      type: String,
+      default: 'action'
     },
     css: {
       type: Object,
@@ -248,6 +260,10 @@ export default {
       currentPage: 1,
       selectedTo: [],
       visibleDetailRows: [],
+      selectData: {
+        selectedItem: null,
+        avoidReset: false
+      }
     }
   },
   created () {
@@ -262,6 +278,11 @@ export default {
     if (this.apiMode == false && this.data.length > 0) {
       this.setData(this.data)
     }
+
+    this.$on(this.eventPrefix + 'row-clicked', this.selectElement)
+    this.$on(this.eventPrefix + 'load', this.resetSelection)
+    this.$on(this.eventPrefix + 'abort-load', this.resetSelection)
+    this.$on(this.eventPrefix + 'sort', () => { this.selectData.avoidReset = true })
   },
   computed: {
     Fields () {
@@ -309,6 +330,47 @@ export default {
     }
   },
   methods: {
+    checkEqual (first, second) {
+      if(!first || !second)
+        return false
+      if(typeof this.trackBy === 'string') {
+        return first[this.trackBy] === second[this.trackBy]
+      }
+
+      for(let i = 0; i < this.trackBy.length; i++) {
+        if(first[this.trackBy[i]] !== second[this.trackBy[i]])
+          return false
+      }
+      return true
+    },
+    setSelected (item) {
+      this.selectData.selectedItem = item
+      this.fireEvent('selected', item)
+    },
+    selectElement (dataItem, event) {
+      if (! this.selectable) return
+      if (event.target.tagName !== 'TD' ) return
+
+      if (this.checkEqual(this.selectData.selectedItem, dataItem)) {
+        this.setSelected(null)
+      } else {
+        this.setSelected(dataItem)
+      }
+    },
+    resetSelection () {
+      if (this.selectData.avoidReset) {
+        this.selectData.avoidReset = false;
+        return;
+      }
+      this.setSelected(null)
+    },
+    editItem (index, newItem) {
+      for(let k in newItem) {
+        if(this.tableData[index].hasOwnProperty(k)) {
+          this.tableData[index][k] = newItem[k]
+        }
+      }
+    },
     normalizeFields () {
       if (typeof(this.fields) === 'undefined') {
         this.warn('You need to provide "fields" prop.')
@@ -526,6 +588,8 @@ export default {
         //no multisort, or resetting sort
         this.singleColumnSort(field)
       }
+
+      this.fireEvent('sort');
 
       this.currentPage = 1    // reset page index
       this.loadData()
@@ -804,11 +868,23 @@ export default {
         return
       }
 
-      if (typeof(this.rowClass) === 'function') {
-        return this.rowClass(dataItem, index)
+      let classes = []
+
+      if (this.selectable) {
+        classes.push(this.selectableHoverClass)
+
+        if (this.checkEqual(this.selectData.selectedItem, dataItem)) {
+          classes.push(this.selectedRowClass);
+        }
       }
 
-      return this.rowClass
+      if (typeof(this.rowClass) === 'function') {
+        classes.push(this.rowClass(dataItem, index))
+      } else {
+        classes.push(this.rowClass)
+      }
+
+      return classes
     },
     onRowChanged (dataItem) {
       this.fireEvent('row-changed', dataItem)
