@@ -279,20 +279,6 @@ export default {
     this.$on(this.eventPrefix + 'sort', () => { this.selectData.avoidReset = true })
   },
   computed: {
-    Fields () {
-      if(! this.sortable) return this.fields
-
-      let newFields = this.fields.map(function(field) {
-        if(field.sortField === undefined) {
-          field.sortField = field.name;
-        } else if(!field.sortField) {
-          delete field.sortField
-        }
-        return field;
-      })
-
-      return newFields
-    },
     useDetailRow () {
       if (this.tableData && this.tableData[0] && this.detailRowComponent !== '' && typeof this.tableData[0][this.trackBy] === 'undefined') {
         this.warn('You need to define unique row identifier in order for detail-row feature to work. Use `track-by` prop to define one!')
@@ -383,8 +369,17 @@ export default {
             dataClass: '',
             callback: null,
             visible: true,
+            sortField: this.sortable && field
           }
         } else {
+          if(this.sortable) {
+            if(field.sortField === undefined) {
+              field.sortField = field.name;
+            } else if(!field.sortField) {
+              delete field.sortField
+            }
+          }
+
           obj = {
             name: field.name,
             title: (field.title === undefined) ? self.setTitle(field.name) : field.title,
